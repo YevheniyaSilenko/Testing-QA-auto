@@ -1,0 +1,1163 @@
+{
+	"info": {
+		"_postman_id": "fb7c4376-b42b-4f68-bb3c-b3a6165bd83a",
+		"name": "TestQauto Copy 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27727107"
+	},
+	"item": [
+		{
+			"name": "User management",
+			"item": [
+				{
+					"name": "Signup",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Генерація випадкового ім'я",
+									"function getRandomFirstName() {",
+									"  const firstNames = [\"John\", \"Jane\", \"Alex\", \"Chris\", \"Taylor\", \"Jordan\", \"Morgan\", \"Casey\"];",
+									"  return firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"}",
+									"",
+									"// Генерація випадкового прізвища",
+									"function getRandomLastName() {",
+									"  const lastNames = [\"Smith\", \"Doe\", \"Johnson\", \"Brown\", \"Davis\", \"Miller\", \"Wilson\", \"Moore\"];",
+									"  return lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"}",
+									"",
+									"// Генерація унікального ідентифікатора",
+									"var uniqueId = new Date().getTime();",
+									"pm.environment.set(\"unique_id\", uniqueId);",
+									"",
+									"pm.environment.set(\"unique_id\", Math.floor(Math.random() * 1000000).toString());",
+									"",
+									"",
+									"",
+									"function generatePassword() {",
+									"  const length = Math.floor(Math.random() * 8) + 8; // Довжина від 8 до 15",
+									"  const charset = \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\";",
+									"  let password = \"\";",
+									"",
+									"  // Додаємо одну маленьку, одну велику літеру і одну цифру",
+									"  password += \"abcdefghijklmnopqrstuvwxyz\".charAt(Math.floor(Math.random() * 26));",
+									"  password += \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\".charAt(Math.floor(Math.random() * 26));",
+									"  password += \"0123456789\".charAt(Math.floor(Math.random() * 10));",
+									"",
+									"  for (let i = 3; i < length; i++) {",
+									"    password += charset.charAt(Math.floor(Math.random() * charset.length));",
+									"  }",
+									"",
+									"  return password.split('').sort(() => 0.5 - Math.random()).join(''); // Перемішуємо символи",
+									"}",
+									"",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validate the response schema for user creation\", function () {",
+									"  var schema = {",
+									"    type: \"object\",",
+									"    properties: {",
+									"      status: {",
+									"        type: \"string\"",
+									"      },",
+									"      data: {",
+									"        type: \"object\",",
+									"        properties: {",
+									"          userId: {",
+									"            type: \"integer\"",
+									"          },",
+									"          photoFilename: {",
+									"            type: \"string\"",
+									"          },",
+									"          distanceUnits: {",
+									"            type: \"string\"",
+									"          },",
+									"          currency: {",
+									"            type: \"string\"",
+									"          }",
+									"        },",
+									"        required: [\"userId\", \"photoFilename\", \"distanceUnits\", \"currency\"]",
+									"      }",
+									"    },",
+									"    required: [\"status\", \"data\"]",
+									"  };",
+									"",
+									"  var response = pm.response.json();",
+									"  pm.expect(tv4.validate(response, schema)).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Response contains expected fields and email is unique\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    console.log(\"Response JSON:\", JSON.stringify(jsonData, null, 2)); // Лог JSON відповіді",
+									"",
+									"    var uniqueId = pm.environment.get(\"unique_id\");",
+									"    var expectedEmail = `test${uniqueId}@test.com`;",
+									"",
+									"    // Перевірка, що статус відповіді \"ok\"",
+									"    pm.expect(jsonData.status).to.eql(\"ok\");",
+									"",
+									"    // Перевірка наявності об'єкта data",
+									"    pm.expect(jsonData.data).to.be.an('object');",
+									"",
+									"    // Перевірка наявності та типу userId",
+									"    pm.expect(jsonData.data.userId, 'userId should be present in response').to.exist;",
+									"    pm.expect(jsonData.data.userId, 'userId should be a number').to.be.a('number');",
+									"",
+									"    // Перевірка інших полів",
+									"    pm.expect(jsonData.data.photoFilename, 'photoFilename should be a string').to.be.a('string');",
+									"    pm.expect(jsonData.data.distanceUnits, 'distanceUnits should be a string').to.be.a('string');",
+									"    pm.expect(jsonData.data.currency, 'currency should be a string').to.be.a('string');",
+									"",
+									"    // Збереження електронної пошти у змінній середовища для подальшого використання",
+									"    pm.environment.set(\"createdUserEmail\", expectedEmail);",
+									"",
+									"    console.log(\"Created user email:\", expectedEmail); // Лог очікуваної електронної пошти",
+									"});",
+									"",
+									"let createdEmails = pm.environment.get(\"createdEmails\") || [];",
+									"",
+									"pm.test(\"Check email uniqueness\", function () {",
+									"    var uniqueId = pm.environment.get(\"unique_id\");",
+									"    var newEmail = `test${uniqueId}@test.com`;",
+									"",
+									"    // Перевірка, що нова електронна пошта ще не була використана",
+									"    pm.expect(createdEmails).to.not.include(newEmail);",
+									"",
+									"    // Додавання нової електронної пошти до списку",
+									"    createdEmails.push(newEmail);",
+									"    pm.environment.set(\"createdEmails\", createdEmails);",
+									"",
+									"    console.log(\"New email added to the list:\", newEmail); // Лог доданої електронної пошти",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"if (response.status === \"ok\") {",
+									"    pm.environment.set(\"userId\", response.data.userId);",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "dGVzdDE3MTk0OTczOTM0MzJAdGVzdC5jb206UXdlcnR5MTJBYQ==",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{randomFirstName}}\",\n    \"lastName\": \"{{randomLastName}}\",\n    \"email\": \"test{{unique_id}}@test.com\",\n    \"password\": \"{{unique_password}}\",\n    \"repeatPassword\": \"{{unique_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						},
+						"description": "\nThe endpoint `POST /api/auth/signup` is used to create a new user account.\n\n### Request Body\n- `name` (text, required): The first name of the user.\n- `lastName` (text, required): The last name of the user.\n- `email` (text, required): The email address of the user.\n- `password` (text, required): The password for the user account.\n- `repeatPassword` (text, required): The repeated password for confirmation.\n\n### Response\nThe response is in JSON format and has the following schema:\n```json\n{\n    \"type\": \"object\",\n    \"properties\": {\n        \"status\": {\n            \"type\": \"string\"\n        },\n        \"data\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"userId\": {\n                    \"type\": \"integer\"\n                },\n                \"photoFilename\": {\n                    \"type\": \"string\"\n                },\n                \"distanceUnits\": {\n                    \"type\": \"string\"\n                },\n                \"currency\": {\n                    \"type\": \"string\"\n                }\n            }\n        }\n    }\n}\n```\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Signin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"console.log(\"Full response:\", jsonData);",
+									"",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.environment.set(\"auth_token\", jsonData.data.token);",
+									"    console.log(\"Auth Token: \" + pm.environment.get(\"auth_token\"));",
+									"} else {",
+									"    console.log(\"Token not found in response:\", jsonData);",
+									"}",
+									"",
+									"pm.test(\"Save cookie sid\", function () {",
+									"    var cookie = pm.cookies.get('sid');",
+									"    pm.environment.set(\"sid\", cookie);",
+									"    console.log(\"Saved cookie sid: \" + cookie);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Логування значень змінних перед авторизацією",
+									"console.log(\"Signing in with email: test\" + pm.environment.get(\"unique_id\") + \"@test.com\");",
+									"console.log(\"Signing in with password: \" + pm.environment.get(\"unique_password\"));",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "test1719564822151test.com",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "Qwerty12Aa",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test{{unique_id}}@test.com\",\n    \"password\": \"{{unique_password}}\",\n    \"remember\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update user profile",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Генерація рандомного імені",
+									"var firstNames = [\"John\", \"Jane\", \"Alex\", \"Emily\", \"Chris\", \"Kate\"];",
+									"var lastNames = [\"Doe\", \"Smith\", \"Johnson\", \"Brown\", \"Davis\", \"Wilson\"];",
+									"",
+									"var randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];",
+									"var randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];",
+									"",
+									"pm.environment.set(\"randomFirstName\", randomFirstName);",
+									"pm.environment.set(\"randomLastName\", randomLastName);",
+									"",
+									"// Генеруємо нову дату народження",
+									"let birthYear = 2005 + Math.floor(Math.random() * 10); // Наприклад, від 2005 до 2014",
+									"let birthDate = `${birthYear}-01-01T00:00:00.000Z`;",
+									"pm.environment.set(\"birthDate\", birthDate);",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"console.log(\"Response:\", jsonData);",
+									"",
+									"pm.test(\"Profile updated successfully\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"ok\");",
+									"});",
+									"",
+									"pm.test(\"Profile update response contains expected values\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    console.log(\"Response JSON:\", JSON.stringify(jsonData, null, 2)); // Лог JSON відповіді",
+									"",
+									"    // Очікувані значення",
+									"    var expectedPhoto = pm.environment.get(\"photo\");",
+									"    var expectedFirstName = pm.environment.get(\"randomFirstName\");",
+									"    var expectedLastName = pm.environment.get(\"randomLastName\");",
+									"    var expectedBirthDate = pm.environment.get(\"birthDate\");",
+									"    var expectedCountry = pm.environment.get(\"country\");",
+									"",
+									"    // Перевірка, що статус відповіді \"ok\"",
+									"    pm.expect(jsonData.status).to.eql(\"ok\");",
+									"",
+									"    // Перевірка, що відповідь містить очікувані значення",
+									"    pm.expect(jsonData.data.photoFilename, 'Photo should match the updated value').to.eql(\"default-user.png\");",
+									"    pm.expect(jsonData.data.name, 'First name should match the updated value').to.eql(expectedFirstName);",
+									"    pm.expect(jsonData.data.lastName, 'Last name should match the updated value').to.eql(expectedLastName);",
+									"    pm.expect(jsonData.data.dateBirth, 'Date of birth should match the updated value').to.eql(expectedBirthDate);",
+									"    pm.expect(jsonData.data.country, 'Country should match the updated value').to.eql(expectedCountry);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"followAuthorizationHeader": false
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic",
+								"description": "dGVzdDE3MTk0OTczOTM0MzJAdGVzdC5jb206UXdlcnR5MTJBYQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"photo\": \"user-1621352948859.jpg\",\n    \"name\": \"{{randomFirstName}}\",\n    \"lastName\": \"{{randomLastName}}\",\n    \"dateBirth\": \"{{birthDate}}\",\n    \"country\": \"Ukraine\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change user password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"const userId = pm.environment.get(\"userId\");",
+									"",
+									"if (response.status === \"ok\") {",
+									"    pm.test(\"Ідентифікатор користувача відповідає\", function() {",
+									"        pm.expect(userId).to.not.be.undefined;",
+									"    });",
+									"} else {",
+									"    pm.test(\"Зміна пароля не вдалася\", function() {",
+									"        pm.expect(response.status).to.equal(\"ok\");",
+									"    });",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"{{unique_password}}\",\n  \"password\": \"Good_girl1\",\n  \"repeatPassword\": \"Good_girl1\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Вихід успішний\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login with new password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code should be 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log(\"Response body:\", pm.response.text());",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"followAuthorizationHeader": false,
+						"followOriginalHttpMethod": false,
+						"disableUrlEncoding": false
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test{{unique_id}}@test.com\",\n    \"password\": \"Good_girl1\",\n    \"remember\": false\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Car Managment",
+			"item": [
+				{
+					"name": "Get cars brands",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cars/brands",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cars",
+								"brands"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add car",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set(\"carId\", response.data.id);",
+									"} else {",
+									"    console.log(\"Failed to create a car.\");",
+									"}",
+									"",
+									"",
+									"pm.test(\"Response status code is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('status');",
+									"    pm.expect(responseData).to.have.property('data');",
+									"    pm.expect(responseData.data).to.have.property('id');",
+									"    pm.expect(responseData.data).to.have.property('carBrandId');",
+									"    pm.expect(responseData.data).to.have.property('carModelId');",
+									"    pm.expect(responseData.data).to.have.property('initialMileage');",
+									"    pm.expect(responseData.data).to.have.property('updatedMileageAt');",
+									"    pm.expect(responseData.data).to.have.property('carCreatedAt');",
+									"    pm.expect(responseData.data).to.have.property('mileage');",
+									"    pm.expect(responseData.data).to.have.property('brand');",
+									"    pm.expect(responseData.data).to.have.property('model');",
+									"    pm.expect(responseData.data).to.have.property('logo');",
+									"});",
+									"",
+									"",
+									"pm.test(\"InitialMileage is a non-negative integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.data.initialMileage).to.be.a('number');",
+									"    pm.expect(responseData.data.initialMileage).to.be.at.least(0, \"InitialMileage should be a non-negative integer\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"CarCreatedAt is in a valid date format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.data.carCreatedAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"pm.test(\"Save carId and initial mileage\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"carId\", jsonData.data.id);",
+									"    pm.environment.set(\"initialMileage\", jsonData.data.mileage);",
+									"    console.log(\"Saved carId: \", jsonData.data.id);",
+									"    console.log(\"Saved initialMileage: \", jsonData.data.mileage);",
+									"});",
+									" ",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"carBrandId\": 1,\n    \"carModelId\": 1,\n    \"mileage\": 300\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/cars",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cars"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add expenses to car",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Отримуємо поточну дату",
+									"const currentDate = new Date();",
+									"",
+									"// Отримуємо дату створення автомобіля з середовища",
+									"const carCreationDate = new Date(pm.environment.get(\"carCreationDate\"));",
+									"",
+									"// Якщо поточна дата менша або рівна даті створення автомобіля, встановлюємо reportedAt як наступний день після carCreationDate",
+									"let reportedAt = currentDate <= carCreationDate ? new Date(carCreationDate.getTime() + 86400000) : currentDate;",
+									"",
+									"// Встановлюємо reportedAt в середовище",
+									"pm.environment.set(\"reportedAt\", reportedAt.toISOString().split('T')[0]);",
+									"",
+									"// Встановіть значення пробігу за замовчуванням, якщо ще не встановлене",
+									"if (!pm.environment.get(\"mileage\")) {",
+									"    pm.environment.set(\"mileage\", \"300\");",
+									"}",
+									"",
+									"// Отримайте попередні витрати і збільште їх для нових витрат",
+									"const previousTotalCost = parseFloat(pm.environment.get(\"previousTotalCost\")) || 10; // Початкове значення 10",
+									"const nextTotalCost = previousTotalCost + 10; // Збільшуємо витрати на 10",
+									"pm.environment.set(\"nextTotalCost\", nextTotalCost);",
+									"",
+									"// Збільшуємо пробіг на 10",
+									"const mileage = parseFloat(pm.environment.get(\"mileage\")) + 10;",
+									"pm.environment.set(\"mileage\", mileage);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseBody = pm.response.json();",
+									"",
+									"",
+									"// Перевірка чи є статус \"ok\" у відповіді",
+									"pm.test(\"Response status is 'ok'\", function () {",
+									"    pm.expect(responseBody.status).to.equal(\"ok\");",
+									"});",
+									"",
+									"// Перевірка, що дані присутні у відповіді",
+									"pm.test(\"Response contains data object\", function () {",
+									"    pm.expect(responseBody).to.have.property(\"data\");",
+									"});",
+									"",
+									"pm.test(\"Check reportedAt date\", function () {",
+									"    const carCreationDate = new Date(pm.environment.get(\"carCreationDate\"));",
+									"    const reportedAt = new Date(pm.environment.get(\"reportedAt\"));",
+									"    ",
+									"    pm.expect(reportedAt.getTime()).to.be.at.least(carCreationDate.getTime());",
+									"});",
+									"",
+									"// Отримання значення витрат з відповіді",
+									"const currentTotalCost = responseBody.data.totalCost;",
+									"",
+									"// Отримання попереднього значення витрат з змінних середовища",
+									"const previousTotalCost = pm.environment.get(\"previousTotalCost\");",
+									"",
+									"// Перевірка, що поточні витрати більші за попередні",
+									"pm.test(\"Current total cost is greater than previous\", function () {",
+									"    pm.expect(currentTotalCost).to.be.above(previousTotalCost);",
+									"});",
+									"",
+									"// Оновлення попередніх витрат у змінних середовища",
+									"pm.environment.set(\"previousTotalCost\", currentTotalCost);",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"carId\": {{carId}},\n    \"reportedAt\": \"{{reportedAt}}\",\n    \"mileage\": {{mileage}},\n    \"liters\": 11,\n    \"totalCost\": {{nextTotalCost}},\n    \"forceMileage\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/expenses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"expenses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user current cars",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cars",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cars"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete curent car",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "dGVzdDE3MTk1NjQ4MjIxNTF0ZXN0LmNvbTpRd2VydHkxMkFh",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cars/{{carId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cars",
+								"{{carId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validation",
+			"item": [
+				{
+					"name": "ValidateUserCreation",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const scenario = pm.environment.get(\"current_scenario\");",
+									"",
+									"pm.test(\"Статус відповіді 400 для невалідних даних\", function() {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"const jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Перевірка повідомлення про помилку\", function() {",
+									"    pm.expect(jsonData.status).to.eql(\"error\");",
+									"});",
+									"",
+									"switch(scenario) {",
+									"    case \"Missing First Name\":",
+									"        pm.test(\"Перевірка повідомлення для 'Missing First Name'\", function() {",
+									"            pm.expect(jsonData.message).to.include('\"name\" is not allowed to be empty');",
+									"        });",
+									"        break;",
+									"    case \"Missing Last Name\":",
+									"        pm.test(\"Перевірка повідомлення для 'Missing Last Name'\", function() {",
+									"            pm.expect(jsonData.message).to.include('\"lastName\" is not allowed to be empty');",
+									"        });",
+									"        break;",
+									"    case \"Invalid Email\":",
+									"    pm.test(\"Перевірка повідомлення для 'Invalid Email'\", function() {",
+									"        const message = jsonData.message;",
+									"        pm.expect(message).to.equal(\"Email is incorrect\");",
+									"    });",
+									"",
+									"        break;",
+									"    case \"Weak Password\":",
+									"    pm.test(\"Перевірка повідомлення для 'Weak Password'\", function() {",
+									"        const message = jsonData.message;",
+									"        pm.expect(message).to.include(\"Password has to be from 8 to 15 characters long\");",
+									"        pm.expect(message).to.include(\"contain at least one integer\");",
+									"        pm.expect(message).to.include(\"one capital\");",
+									"        pm.expect(message).to.include(\"one small letter\");",
+									"    });",
+									"",
+									"        break;",
+									"    case \"Password Mismatch\":",
+									"        pm.test(\"Перевірка повідомлення для 'Password Mismatch'\", function() {",
+									"            pm.expect(jsonData.message).to.include('Passwords do not match');",
+									"        });",
+									"        break;",
+									"    case \"Empty Password\":",
+									"        pm.test(\"Перевірка повідомлення для 'Empty Password'\", function() {",
+									"            pm.expect(jsonData.message).to.include('\"password\" is not allowed to be empty');",
+									"        });",
+									"        break;",
+									"    default:",
+									"        pm.test(\"Невідомий сценарій\", function() {",
+									"            pm.expect(false, \"Unknown scenario\").to.be.true;",
+									"        });",
+									"}",
+									"",
+									"console.log(\"Tested scenario: \" + scenario);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{validation_name}}\",\n    \"lastName\": \"{{validation_lastName}}\",\n    \"email\": \"{{validation_email}}\",\n    \"password\": \"{{validation_password}}\",\n    \"repeatPassword\": \"{{validation_repeatPassword}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidateUserProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"",
+									"pm.test(\"Check for invalid country error\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var errorMessages = jsonData.errors ? jsonData.errors.map(e => e.message) : [];",
+									"    if (pm.request.body.raw.includes(\"invalid-country\")) {",
+									"        pm.expect(errorMessages).to.include('Invalid country specified.');",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Check for invalid name error\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var errorMessages = jsonData.errors ? jsonData.errors.map(e => e.message) : [];",
+									"    if (pm.request.body.raw.includes(\"invalid-name\")) {",
+									"        pm.expect(errorMessages).to.include('Invalid name format.');",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Check for invalid date of birth error\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var errorMessages = jsonData.errors ? jsonData.errors.map(e => e.message) : [];",
+									"    if (pm.request.body.raw.includes(\"invalid-date\")) {",
+									"        pm.expect(errorMessages).to.include('Invalid date of birth.');",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "uk",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "dGVzdDE3MTk0OTczOTM0MzJAdGVzdC5jb206UXdlcnR5MTJBYQ==",
+								"description": "dGVzdDE3MTk0OTczOTM0MzJAdGVzdC5jb206UXdlcnR5MTJBYQ==",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"country\": \"{{country}}\",\n  \"name\": \"{{name}}\",\n  \"dateOfBirth\": \"{{dateOfBirth}}\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Delete user",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"function delay(ms) {",
+					"    return new Promise(resolve => setTimeout(resolve, ms));",
+					"}",
+					"",
+					"pm.environment.set(\"delay\", delay);",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "carId",
+			"value": "{{carId}}"
+		}
+	]
+}
