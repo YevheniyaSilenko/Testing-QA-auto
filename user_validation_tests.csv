@@ -1,0 +1,10 @@
+testType,firstName,lastName,email,password,repeatPassword,dateBirth,country,description
+signup,FirstName,LastName,test1@test.com,password123,password123,,Missing First Name
+signup,FirstName,,test2@test.com,password123,password123,,Missing Last Name
+signup,FirstName,LastName,testexample.com,password123,password123,,Invalid Email
+signup,FirstName,LastName,test3@test.com,short,password123,,Short Password
+signup,FirstName,LastName,test4@test.com,password123,,Password Mismatch
+signup,FirstName,LastName,test5@test.com,password123,password123,,Valid Data
+profile,,,,,invalid-date,USA,Invalid Date of Birth
+profile,,,,,1990-01-01,invalid-country,Invalid Country
+profile,,,,,1990-01-01,USA,invalid-email,Invalid Email
